@@ -12,14 +12,14 @@ class Line():
 		#radius of curvature of the line in some meters
 		self.radius_of_curvature = radius_of_curvature 
 		#distance in meters of vehicle center from the line
-		self.line_base_pos = None 
+		self.line_base_pos = line_base_pos 
 		#x values for detected line pixels
 		self.allx = allx
 		#y values for detected line pixels
 		self.ally = ally
 
 def find_lane_lines(image, original_image, left_fit=None, right_fit=None):
-	window_height = 50
+	window_height = 25
 	window_width = 50
 	margin = 50
 
@@ -31,7 +31,7 @@ def find_lane_lines(image, original_image, left_fit=None, right_fit=None):
 
 	# using the previous line, or the sliding window convolution, search for points around
 	# the lines and use these to fit a new line of best fit.
-	return find_lane_lines_from_fit(image, left_fit, right_fit, margin)
+	return find_lane_lines_from_fit(image, original_image, left_fit, right_fit, margin)
 
 def find_lane_lines_from_fit(image, original_image, left_fit, right_fit, margin):
 	nonzero = image.nonzero()
@@ -59,10 +59,10 @@ def find_lane_lines_from_fit(image, original_image, left_fit, right_fit, margin)
 	left_x_pts = left_fit[0]*left_y_pts**2 + left_fit[1]*left_y_pts + left_fit[2]
 	right_x_pts = right_fit[0]*right_y_pts**2 + right_fit[1]*right_y_pts + right_fit[2]
 
-	center_position = find_line_base_pos(image. original_image, left_fit, right_fit, xm_per_pix)
+	center_position = find_line_base_pos(image, original_image, left_fit, right_fit, xm_per_pix)
 
-	return [Line(left_fit, left_radius, center_position, left_y_pts, left_x_pts), 
-	Line(right_fit, right_radius, center_position, right_y_pts, right_x_pts)]
+	return [Line(left_fit, left_radius, center_position, left_x_pts, left_y_pts), 
+	Line(right_fit, right_radius, center_position, right_x_pts, right_y_pts)]
 
 def find_radius(image, left_fit, right_fit, leftx, lefty, rightx, righty, ym_per_pix, xm_per_pix):
 	y_eval = np.max(image.shape[0] - 1)
@@ -81,14 +81,13 @@ def find_line_base_pos(warped_image, original_image, left_fit, right_fit, xm_per
 	left_x_point = left_fit[0]*(warped_image.shape[0]**2) + left_fit[1]*warped_image.shape[0] + left_fit[2]
 	right_x_point = right_fit[0]*(warped_image.shape[0]**2) + right_fit[1]*warped_image.shape[0] + right_fit[2]
 	# taken from RoadTransformer.src
-	max_pixel = 1200
-	min_pixel = 70
+	max_pixel = 1280
+	min_pixel = 20
 
 	lane_center_warped = int((right_x_point - left_x_point) / 2)
 	lane_center = min_pixel + int(lane_center_warped * ((max_pixel - min_pixel) / warped_image.shape[1]))
 
 	return (lane_center - center) * xm_per_pix
-
 
 def fit_lines_to_image(left_centroids, right_centroids):
 	lefty = [c[1] for c in left_centroids]

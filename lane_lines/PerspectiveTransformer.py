@@ -16,21 +16,15 @@ class ImageDistorter:
 
 		ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, shape, None, None)
 		h, w = shape
-		newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
 
 		self.ret = ret
 		self.mtx = mtx 
 		self.dist = dist 
 		self.rvecs = rvecs
 		self.tvecs = tvecs
-		self.optimal_mtx = newcameramtx
-		self.roi = roi
 
 	def undistort(self, image):
-		dst = cv2.undistort(image, self.mtx, self.dist, None, self.optimal_mtx)
-		# crop the image
-		x,y,w,h = self.roi
-		return dst[y:y+h, x:x+w]
+		return cv2.undistort(image, self.mtx, self.dist, None, self.mtx)
 
 class PerspectiveTransformer:
 	def __init__(self, shape, src, dst):
@@ -53,9 +47,9 @@ def cal_image_files():
 
 class RoadTransformer(PerspectiveTransformer):
 	def __init__(self):
-		src = np.float32([(541, 395), (690, 395), (70, 589), (1200, 590)])
+		src = np.float32([(555, 460), (728, 460), (20, 720), (1280, 720)])
 		dst = np.float32([(0, 0), (400, 0), (0, 500), (400, 500)])
-		PerspectiveTransformer.__init__(self, (720, 1280), src, dst)
+		PerspectiveTransformer.__init__(self, (1280, 720), src, dst)
 
 def find_corners(image, image_file, criteria, size):
   gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
