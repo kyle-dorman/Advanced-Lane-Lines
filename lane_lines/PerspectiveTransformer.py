@@ -47,7 +47,7 @@ def cal_image_files():
 
 class RoadTransformer(PerspectiveTransformer):
 	def __init__(self):
-		src = np.float32([(555, 460), (728, 460), (20, 720), (1280, 720)])
+		src = np.float32([(546, 460), (737, 460), (20, 680), (1280, 680)])
 		dst = np.float32([(0, 0), (400, 0), (0, 500), (400, 500)])
 		PerspectiveTransformer.__init__(self, (1280, 720), src, dst)
 

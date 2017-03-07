@@ -2,34 +2,98 @@
 
 import numpy as np
 import cv2
+from scipy.signal import convolve2d
 
-def abs_channel_sobel_thresh(image, channel=0, orient='x', sobel_kernel=3, thresh=(0, 255)):
-  channel_image = image[:,:,channel]
+def filter(image):
+  shadow = shadow_lane_finder(image)
+  non_shadow = non_shadow_lane_finder(image)
+  result = np.zeros_like(shadow)
+  result[(shadow==1)|(non_shadow==1)] = 1
+  return result
+
+def non_shadow_lane_finder(image):
+  yellow = yellow_finder(image)
+  white = white_finder(image)
+  shadow = shadow_mask(image, thresh=(0,50))
+  
+  result = np.zeros_like(white)
+  result[((yellow==1)|(white==1)) & (shadow==0)] = 1
+  return result
+
+def shadow_lane_finder(image):
+  shadow = shadow_mask(image)
+  r_sobel = abs_sobel_mask(image[:,:,0], shadow)
+  g_sobel = abs_sobel_mask(image[:,:,0], shadow)
+  b_sobel = abs_sobel_mask(image[:,:,0], shadow)
+  
+  result = np.zeros_like(r_sobel)
+  result[(r_sobel==1)|(g_sobel==1)|(b_sobel==1)] = 1
+  return result
+
+def white_finder(image, thresh=(200, 255)):
+  r = image[:,:,0]
+  g = image[:,:,1]
+  b = image[:,:,2]
+  white = np.zeros_like(r)
+  white[((r >=thresh[0]) & (r <= thresh[1])) & ((g >=thresh[0]) & (g <= thresh[1])) & ((b >=thresh[0]) & (b <= thresh[1]))] = 1
+  black = hsv_threshold(image, channel=2, thresh=(0, 180))
+  gradx = abs_sobel_thresh(image, orient='x', sobel_kernel=15, thresh=(25, 100))
+  
+  combined = np.zeros_like(gradx)
+  combined[((gradx==1)|(white==1))&(black==0)] = 1
+  return combined
+
+def yellow_finder(image):
+  h1 = hsv_threshold(image, channel=0, thresh=(17, 30))
+  h2 = hls_threshold(image, channel=0, thresh=(20, 30))
+  # s = hls_threshold(image, channel=2, thresh=(100, 255))
+  result = np.zeros_like(h1)
+  # result[((h1==1)|(h2==1))&(s==1)] = 1
+  result[(h1==1)|(h2==1)] = 1
+  return result
+
+# thresh (0-50) will hide shadow
+# thresh (50-255) is show shadow)
+def shadow_mask(image, thresh=(50, 255)):
+  l = cv2.cvtColor(image, cv2.COLOR_RGB2HLS).astype(np.float)[:,:,1]
+  mask = convolve2d(l, np.ones((3, 3)), mode='same')
+  scaled_mask = np.uint8(255*mask/np.max(mask))
+  shadow_mask = np.zeros_like(scaled_mask)
+  shadow_mask[(scaled_mask>=thresh[0])&(scaled_mask<=thresh[1])] = 1
+  return shadow_mask
+
+def hsv_threshold(image, channel=0, thresh=(0, 255)):
+  hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+  c_img = hsv[:,:,channel]
+  binary = np.zeros_like(c_img)
+  binary[(c_img >= thresh[0]) & (c_img <= thresh[1])] = 1
+  return binary
+
+def hls_threshold(image, channel=0, thresh=(0, 255)):
+  hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS).astype(np.float)
+  c_img = hls[:,:,channel]
+  binary = np.zeros_like(c_img)
+  binary[(c_img >= thresh[0]) & (c_img <= thresh[1])] = 1
+  return binary
+
+def abs_sobel_mask(c_img, mask):
+  sobel = cv2.Sobel(c_img, cv2.CV_64F, 1, 0, ksize=11)
+  abs_sobel = np.absolute(sobel)
+  abs_sobel[(mask == 1)] = 0
+  scaled_sobel = np.uint8(255*abs_sobel/np.max(abs_sobel))
+  scaled_sobel[(mask == 1)] = 0
+  result = np.zeros_like(scaled_sobel)
+  result[(scaled_sobel>25)] = 1
+  return result
+
+def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
+  gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
   if orient is 'x':
-      sobel = cv2.Sobel(channel_image, cv2.CV_64F, 1, 0)
+      sobel = cv2.Sobel(gray, cv2.CV_64F, 1, 0)
   else:
-      sobel = cv2.Sobel(channel_image, cv2.CV_64F, 0, 1)
+      sobel = cv2.Sobel(gray, cv2.CV_64F, 0, 1)
   abs_sobel = np.absolute(sobel)
   scaled_sobel = np.uint8(255*abs_sobel/np.max(abs_sobel))
   grad_binary = np.zeros_like(scaled_sobel)
   grad_binary[(scaled_sobel >= thresh[0]) & (scaled_sobel <= thresh[1])] = 1
   return grad_binary
-
-def filter(image, s_thresh=(20, 45), x_thresh=(20, 35)):
-
-	image = np.copy(image)
-	# Convert to HSV color space and separate the V channel
-	hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype(np.float)
-	hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS).astype(np.float)
-
-	vx = abs_channel_sobel_thresh(hsv, channel = 2, thresh=x_thresh)
-	lx = abs_channel_sobel_thresh(hls, channel = 1, thresh=x_thresh)
-	rx = abs_channel_sobel_thresh(image, channel = 0, thresh=x_thresh)
-	sx = abs_channel_sobel_thresh(hls, channel = 2, thresh=s_thresh)
-
-	comb_vlr = np.zeros_like(rx)
-	comb_vlr[((rx == 1) & (lx == 1)) | ((rx == 1) & (vx == 1)) | ((lx == 1) & (vx == 1))] = 255
-
-	result = np.zeros_like(rx)
-	result[(comb_vlr == 1) | (sx == 1)] = 1
-	return result 

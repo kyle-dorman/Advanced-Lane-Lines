@@ -138,9 +138,9 @@ class Road:
 		return True
 
 	def validate_fit_diff(self, left, right, fit_diff):
-		fit_diff_a_tolerance = 0.001
-		fit_diff_b_tolerance = 0.2
-		fit_diff_c_tolerance = 50
+		fit_diff_a_tolerance = 0.003
+		fit_diff_b_tolerance = 0.4
+		fit_diff_c_tolerance = 100
 
 		if fit_diff[0] > fit_diff_a_tolerance:
 			print("Marking line as invalid because first polynomial term difference is greater than", fit_diff_a_tolerance, ". Term difference is", fit_diff[0])
@@ -157,8 +157,8 @@ class Road:
 		return True
 
 	def validate_lane_distance(self, left, right):
-		lane_distance_min = 275.0
-		lane_distance_max = 310.0
+		lane_distance_min = 230.0
+		lane_distance_max = 300.0
 		lane_distance = right.allx[-1] - left.allx[-1]
 		if lane_distance < lane_distance_min or lane_distance > lane_distance_max:
 			print("Marking line as invalid because inter-lane distance falls outside range", lane_distance_min, "-", lane_distance_max, ". Distance is", lane_distance)
@@ -167,7 +167,7 @@ class Road:
 		return True
 
 	def validate_slopes(self, left, right):
-		slope_diff_tolerance = 0.2
+		slope_diff_tolerance = 0.4
 		
 		for i in range(-301, 0, 50):
 			left_slope = slope(left.fit, left.ally[i])

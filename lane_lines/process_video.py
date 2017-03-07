@@ -22,4 +22,4 @@ def process_video(video_name):
 	print("Finished processing your video!")
 	print("Processed", road.frame_counter, "images and found", len(road.invalid_lanes), "invalid frames.")
 
-process_video("project_video.mp4")
+process_video("challenge_video.mp4")
