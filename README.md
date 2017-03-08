@@ -74,7 +74,7 @@ The last step is to actually visualize what the algorithm has found. To do this,
 
 The results of the project were very successful for the `input_videos/project_videp.mp4`. This video has minimal shadows and "weird" road colors and for the most part the car drives on a flat path. The results of my video processing for the project video is below:
 
-[Project Video Link](https://www.youtube.com/watch?v=sajyBSXdqZ0)
+[![Project Video Link](https://j.gifs.com/48POKJ.gif)](https://www.youtube.com/watch?v=sajyBSXdqZ0)
 
 ## Reflections
 
