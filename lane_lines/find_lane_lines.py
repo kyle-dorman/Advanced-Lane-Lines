@@ -3,6 +3,7 @@
 import numpy as np
 import cv2
 
+# a lane class holding interesting single lane snapshot data
 class Line():
 	def __init__(self, fit, radius_of_curvature, line_base_pos, allx, ally):
 		# if the line passes validation
@@ -18,6 +19,8 @@ class Line():
 		#y values for detected line pixels
 		self.ally = ally
 
+# attempt to find the right and left lane lines from a binary image array potentially using previous lane fits
+# if lane fits are not available, use a slidign window to find an initial best fit.
 def find_lane_lines(image, original_image, left_fit=None, right_fit=None):
 	window_height = 25
 	window_width = 50
@@ -33,6 +36,7 @@ def find_lane_lines(image, original_image, left_fit=None, right_fit=None):
 	# the lines and use these to fit a new line of best fit.
 	return find_lane_lines_from_fit(image, original_image, left_fit, right_fit, margin)
 
+# use previously found fit to build a line of best fit through pixels surrounding the fit lines
 def find_lane_lines_from_fit(image, original_image, left_fit, right_fit, margin):
 	nonzero = image.nonzero()
 	nonzeroy = np.array(nonzero[0])
@@ -64,6 +68,7 @@ def find_lane_lines_from_fit(image, original_image, left_fit, right_fit, margin)
 	return [Line(left_fit, left_radius, center_position, left_x_pts, left_y_pts), 
 	Line(right_fit, right_radius, center_position, right_x_pts, right_y_pts)]
 
+# calculate the radius of curvature for the two lane line fits
 def find_radius(image, left_fit, right_fit, leftx, lefty, rightx, righty, ym_per_pix, xm_per_pix):
 	y_eval = np.max(image.shape[0] - 1)
 
@@ -76,6 +81,7 @@ def find_radius(image, left_fit, right_fit, leftx, lefty, rightx, righty, ym_per
 	# Now our radius of curvature is in meters
 	return (left_curverad, right_curverad)
 
+# calculate the car offset from the center of the lane lines
 def find_line_base_pos(warped_image, original_image, left_fit, right_fit, xm_per_pix):
 	center = int(original_image.shape[1] / 2)
 	left_x_point = left_fit[0]*(warped_image.shape[0]**2) + left_fit[1]*warped_image.shape[0] + left_fit[2]
@@ -89,6 +95,7 @@ def find_line_base_pos(warped_image, original_image, left_fit, right_fit, xm_per
 
 	return (lane_center - center) * xm_per_pix
 
+# fit lines to window centroids
 def fit_lines_to_image(left_centroids, right_centroids):
 	lefty = [c[1] for c in left_centroids]
 	leftx = [c[0] for c in left_centroids]
@@ -98,6 +105,7 @@ def fit_lines_to_image(left_centroids, right_centroids):
 	right_fit = np.polyfit(righty, rightx, 2)
 	return (left_fit, right_fit)
 
+# use histograms to find starting points for window search
 def initial_centers(image):
 	histogram = np.sum(image[image.shape[0]/2:,:], axis=0)
 	midpoint = np.int(histogram.shape[0]/2)
@@ -105,6 +113,7 @@ def initial_centers(image):
 	rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 	return (leftx_base, rightx_base)
 
+# using sliding windows to fit lane lines
 def find_window_centroids(image, window_width, window_height, margin):
   left_center, right_center = initial_centers(image)
   left_centroids = find_lane_centroids(image, left_center, window_width, window_height, margin)
@@ -112,6 +121,7 @@ def find_window_centroids(image, window_width, window_height, margin):
     
   return (left_centroids, right_centroids)
 
+# find window centroids for a single lane
 def find_lane_centroids(image, center, window_width, window_height, margin):
   centroids = []
 
@@ -124,7 +134,8 @@ def find_lane_centroids(image, center, window_width, window_height, margin):
       centroids.append((found_centroid, height))
     
   return centroids
-  
+ 
+# find a single window centroid 
 def find_window_centroid(image, window_width, window_height, margin, center, height):
   h_start = max(center - int(margin/2) - int(window_width/2), 0)
   h_end = min(center + int(margin/2) + int(window_width/2), image.shape[1])

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from lane_lines.file import full_path
 
+# responsible for undistoriting images based on a set of calibration images
 class ImageDistorter:
 	def __init__(self):
 		size = (9,6)
@@ -26,6 +27,7 @@ class ImageDistorter:
 	def undistort(self, image):
 		return cv2.undistort(image, self.mtx, self.dist, None, self.mtx)
 
+# transforms image to and from a source and destination. Specific to one transformation set.
 class PerspectiveTransformer:
 	def __init__(self, shape, src, dst):
 		self.src = src
@@ -45,12 +47,14 @@ class PerspectiveTransformer:
 def cal_image_files():
   return glob.glob(full_path('camera_cal') + '/*.jpg')
 
+# perspective transformer for this project based on hard coded values. 
 class RoadTransformer(PerspectiveTransformer):
 	def __init__(self):
 		src = np.float32([(546, 460), (737, 460), (20, 680), (1280, 680)])
 		dst = np.float32([(0, 0), (400, 0), (0, 500), (400, 500)])
 		PerspectiveTransformer.__init__(self, (1280, 720), src, dst)
 
+# find chess board corners for calibration
 def find_corners(image, image_file, criteria, size):
   gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
   ret, corners = cv2.findChessboardCorners(gray, size, None)
@@ -62,11 +66,13 @@ def find_corners(image, image_file, criteria, size):
     corners2 = cv2.cornerSubPix(gray,corners, (11,11), (-1,-1),criteria)
     return (True, corners2)
 
+# helper function to show corners which are found for calibration 
 def show_corners(image, corners, ret, size):
   image = cv2.drawChessboardCorners(image, size, corners, ret)
   plt.imshow(image)
   plt.show()
 
+# calibrate camera from chess board images
 def calibration_points(image_files, criteria, size):
 	cols = size[0]
 	rows = size[1]

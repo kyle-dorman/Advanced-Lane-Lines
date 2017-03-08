@@ -10,6 +10,7 @@ from moviepy.editor import VideoFileClip
 from lane_lines.road import Road
 from lane_lines.file import full_path
 
+# process a video and save output. Designed to be executed from the command line.
 def process_video(video_name):
 	print("Processing your video!")
 	clip = VideoFileClip(full_path("input_videos/" + video_name))
@@ -22,4 +23,4 @@ def process_video(video_name):
 	print("Finished processing your video!")
 	print("Processed", road.frame_counter, "images and found", len(road.invalid_lanes), "invalid frames.")
 
-process_video("challenge_video.mp4")
+# process_video("challenge_video.mp4")
