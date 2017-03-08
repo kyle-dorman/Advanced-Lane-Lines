@@ -40,9 +40,9 @@ The next step is to transform the image into a bird's eye view of the space arou
 
 And here is the result of the transform on a straight road and on a curved road::
 
-![alt text][image7]
-
 ![alt text][image8]
+
+![alt text][image7]
 
 and here is the distorted filtered image:
 
@@ -66,7 +66,7 @@ Up until now, everything we have done is specific to the world of the image. But
 
 Step 5: Display found lines on original image
 
-The last step is to actually visualize what the algorithm has found. To do this, the space between the lanes in the bird's eye image is colored green and then projected back down onto the original image space and overlayed on the original image. This is done in `lane_lines/road.py`'s `draw_lanes` function. The lane that is actually displayed is an average of the last 10 lane lines found which pass some validation filters. An example result is below:
+The last step is to actually visualize what the algorithm has found. To do this, the space between the lanes in the bird's eye image is colored green and then projected back down onto the original image space and overlaid on the original image. This is done in `lane_lines/road.py`'s `draw_lanes` function. The lane that is actually displayed is an average of the last 10 lane lines found which pass some validation filters. An example result is below:
 
 ![alt image][image9]
 
@@ -74,7 +74,7 @@ The last step is to actually visualize what the algorithm has found. To do this,
 
 The results of the project were very successful for the `input_videos/project_videp.mp4`. This video has minimal shadows and "weird" road colors and for the most part the car drives on a flat path. The results of my video processing for the project video is below:
 
-![Project Video](https://youtu.be/sajyBSXdqZ0.gif)
+![Project Video](gifs.com/gif/lane-line-finder-udacity-self-driving-car-nanodegree-48POKJ)
 [Full video](https://www.youtube.com/watch?v=sajyBSXdqZ0)
 
 I had lass success with the challenge_video and the harder_challenge_video. In the challenge_video my model had a hard time picking out lane lines from the other high contrast areas in the image. I did a lot of work to make the filters more robust and from my original filters but at this point they continue to need more work. The harder_challenge_video is much much harder. One huge assumption that I made during the project was the projection area where I should look for the lanes never changes. In the challenge video, the car drives on uneven terrain which changes the area where I need to search for lane lines and should also change the projection matrix. A lot more work would have to be done to support changing projection areas. 
