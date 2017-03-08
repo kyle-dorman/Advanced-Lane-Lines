@@ -4,12 +4,12 @@ In this project I will demonstrate how to identify lane lines using traditional 
 
 [//]: # (Image References)
 
-[image1]: ./output_images/calibration_board.png "Calibration Board Image"
+[image1]: ./output_images/calibrated_board.png "Calibration Board Image"
 [image2]: ./output_images/filter_threshold.png "Filter Threshold Image"
 [image3]: ./output_images/image_mask.png "Image Mask Image"
 [image4]: ./output_images/lane_lines_from_fit_line.png "Lane Lines From Fit Line Image"
 [image5]: ./output_images/lane_lines_identified.png "Lane Lines Identified Image"
-[image6]: ./output_images/orig_distorted_filtered.png "Original Distorted And Filtered Image"
+[image6]: ./output_images/orig_distored_filtered.png "Original Distorted And Filtered Image"
 [image7]: ./output_images/warped_road_curved.png "Warped Road Curved Image"
 [image8]: ./output_images/warped_road_straight.png "Warped Road Straight"
 [image9]: ./output_images/found_lanes_displayed.png "Found Lanes"
@@ -38,11 +38,9 @@ The next step is to transform the image into a bird's eye view of the space arou
 
 ![alt text][image3]
 
-And here is the result of the transform on a straight road:
+And here is the result of the transform on a straight road and on a curved road::
 
 ![alt text][image7]
-
-and on a curved road:
 
 ![alt text][image8]
 
@@ -76,7 +74,8 @@ The last step is to actually visualize what the algorithm has found. To do this,
 
 The results of the project were very successful for the `input_videos/project_videp.mp4`. This video has minimal shadows and "weird" road colors and for the most part the car drives on a flat path. The results of my video processing for the project video is below:
 
-[![Project Video](https://youtu.be/sajyBSXdqZ0.gif)](https://www.youtube.com/watch?v=sajyBSXdqZ0)
+![Project Video](https://youtu.be/sajyBSXdqZ0.gif)
+[Full video](https://www.youtube.com/watch?v=sajyBSXdqZ0)
 
 I had lass success with the challenge_video and the harder_challenge_video. In the challenge_video my model had a hard time picking out lane lines from the other high contrast areas in the image. I did a lot of work to make the filters more robust and from my original filters but at this point they continue to need more work. The harder_challenge_video is much much harder. One huge assumption that I made during the project was the projection area where I should look for the lanes never changes. In the challenge video, the car drives on uneven terrain which changes the area where I need to search for lane lines and should also change the projection matrix. A lot more work would have to be done to support changing projection areas. 
 
