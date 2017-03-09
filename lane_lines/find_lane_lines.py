@@ -5,7 +5,7 @@ import cv2
 
 # a lane class holding interesting single lane snapshot data
 class Line():
-	def __init__(self, fit, radius_of_curvature, line_base_pos, allx, ally):
+	def __init__(self, fit, radius_of_curvature, car_position, allx, ally):
 		# if the line passes validation
 		self.valid = True  
 		# #polynomial coefficients for the fit
@@ -13,7 +13,7 @@ class Line():
 		#radius of curvature of the line in some meters
 		self.radius_of_curvature = radius_of_curvature 
 		#distance in meters of vehicle center from the line
-		self.line_base_pos = line_base_pos 
+		self.car_position = car_position 
 		#x values for detected line pixels
 		self.allx = allx
 		#y values for detected line pixels
@@ -53,8 +53,8 @@ def find_lane_lines_from_fit(image, original_image, left_fit, right_fit, margin)
 	left_fit = np.polyfit(lefty, leftx, 2)
 	right_fit = np.polyfit(righty, rightx, 2)
 
-	ym_per_pix = 30/300 # meters per pixel in y dimension
-	xm_per_pix = 3.7/240 # meters per pixel in x dimension
+	ym_per_pix = 30/700 # meters per pixel in y dimension
+	xm_per_pix = 3.7/900 # meters per pixel in x dimension
 
 	left_radius, right_radius = find_radius(image, left_fit, right_fit, leftx, lefty, rightx, righty, ym_per_pix, xm_per_pix)
 
@@ -63,7 +63,7 @@ def find_lane_lines_from_fit(image, original_image, left_fit, right_fit, margin)
 	left_x_pts = left_fit[0]*left_y_pts**2 + left_fit[1]*left_y_pts + left_fit[2]
 	right_x_pts = right_fit[0]*right_y_pts**2 + right_fit[1]*right_y_pts + right_fit[2]
 
-	center_position = find_line_base_pos(image, original_image, left_fit, right_fit, xm_per_pix)
+	center_position = find_car_position(image, original_image, left_fit, right_fit, xm_per_pix)
 
 	return [Line(left_fit, left_radius, center_position, left_x_pts, left_y_pts), 
 	Line(right_fit, right_radius, center_position, right_x_pts, right_y_pts)]
@@ -78,22 +78,27 @@ def find_radius(image, left_fit, right_fit, leftx, lefty, rightx, righty, ym_per
 	# Calculate the new radii of curvature
 	left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
 	right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
+
+	print(left_curverad, right_curverad)
 	# Now our radius of curvature is in meters
 	return (left_curverad, right_curverad)
 
 # calculate the car offset from the center of the lane lines
-def find_line_base_pos(warped_image, original_image, left_fit, right_fit, xm_per_pix):
-	center = int(original_image.shape[1] / 2)
+def find_car_position(warped_image, original_image, left_fit, right_fit, xm_per_pix):
 	left_x_point = left_fit[0]*(warped_image.shape[0]**2) + left_fit[1]*warped_image.shape[0] + left_fit[2]
 	right_x_point = right_fit[0]*(warped_image.shape[0]**2) + right_fit[1]*warped_image.shape[0] + right_fit[2]
+
 	# taken from RoadTransformer.src
 	max_pixel = 1280
 	min_pixel = 20
 
-	lane_center_warped = int((right_x_point - left_x_point) / 2)
-	lane_center = min_pixel + int(lane_center_warped * ((max_pixel - min_pixel) / warped_image.shape[1]))
+	orig_left_x = (((max_pixel - min_pixel) / warped_image.shape[1]) * left_x_point) + min_pixel
+	orig_right_x = (((max_pixel - min_pixel) / warped_image.shape[1]) * right_x_point) + min_pixel
+	car_point = original_image.shape[1]/2
+	lane_center = ((orig_right_x - orig_left_x)/2) + orig_left_x
+	pixel_shift = lane_center - car_point
 
-	return (lane_center - center) * xm_per_pix
+	return pixel_shift * xm_per_pix
 
 # fit lines to window centroids
 def fit_lines_to_image(left_centroids, right_centroids):

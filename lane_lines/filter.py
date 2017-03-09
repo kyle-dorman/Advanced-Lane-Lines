@@ -51,10 +51,9 @@ def white_finder(image, thresh=(200, 255)):
 def yellow_finder(image):
   h1 = hsv_threshold(image, channel=0, thresh=(17, 30))
   h2 = hls_threshold(image, channel=0, thresh=(20, 30))
-  # s = hls_threshold(image, channel=2, thresh=(100, 255))
+  s = hls_threshold(image, channel=2, thresh=(100, 255))
   result = np.zeros_like(h1)
-  # result[((h1==1)|(h2==1))&(s==1)] = 1
-  result[(h1==1)|(h2==1)] = 1
+  result[((h1==1)|(h2==1))&(s==1)] = 1
   return result
 
 # find areas of shadow based on brightness from an rgb image

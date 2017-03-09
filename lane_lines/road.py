@@ -18,6 +18,9 @@ class Road:
 		self.distorter = ImageDistorter()
 		self.transformer = RoadTransformer()
 
+		self.last_radius_of_curvature = 0
+		self.last_car_position = 0
+
 		# for debugging purposes, log the verification data
 		self.slope_diffs = []
 		self.fit_diffs = []
@@ -35,14 +38,28 @@ class Road:
 		lines = find_lane_lines(warped_binary, image, self.left_fit(), self.right_fit())
 		self.validate_lane_lines(lines[0], lines[1])
 		self.add_lanes(lines)
+		self.update_display_info()
 		# self.display_info()
+
 		return self.draw_lanes(image, warped_binary)
 
 	# for debugging display real world data
 	def display_info(self):
-		print("Radius of curvature(L):", self.left_lanes[-1].radius_of_curvature)
-		print("Radius of curvature(R):", self.right_lanes[-1].radius_of_curvature)
-		print("Center offset(m):", self.left_lanes[-1].line_base_pos)
+		print("Radius of curvature(m):", self.last_radius_of_curvature)
+		print("Car position(m):", self.last_car_position)
+
+	 # update every 5 frames
+	def update_display_info(self):
+		if (self.frame_counter % 5) - 1 != 0:
+			return 
+		self.last_radius_of_curvature = self.calculate_radius_of_curvature()
+		self.last_car_position = self.calculate_car_position()
+
+	def calculate_radius_of_curvature(self):
+		return round(self.left_lanes[-1].radius_of_curvature, 0)
+
+	def calculate_car_position(self):
+		return round(self.left_lanes[-1].car_position, 2)
 
 	# draw lane lines from the found images using the warped image shape.
 	def draw_lanes(self, image, warped_binary):
@@ -71,6 +88,10 @@ class Road:
 		newwarp = self.transformer.unwarped(color_warp)
 		# Combine the result with the original image
 		result = cv2.addWeighted(image, 1, newwarp, 0.3, 0)
+
+		# add car position and radius of curvature
+		cv2.putText(result,"Radius of curvature(m): {}".format(self.last_radius_of_curvature), (50,100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (255,255,255))
+		cv2.putText(result,"Car position(m): {}".format(self.last_car_position), (50,170), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (255,255,255))
 		return result
 
 	# returns an optional fit for use when finding the next line
